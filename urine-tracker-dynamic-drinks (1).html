@@ -1,0 +1,721 @@
+
+<!DOCTYPE html>
+<html lang="fil">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Urine Tracker</title>
+<style>
+:root {
+  --green: #176b5b;
+  --bg: #f2f7f5;
+  --line: #dce7e3;
+  --text: #203b35;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+header {
+  background: var(--green);
+  color: white;
+  padding: 22px 16px;
+}
+header h1 { margin: 0 0 6px; font-size: 25px; }
+header p { margin: 0; font-size: 14px; }
+main { max-width: 720px; margin: auto; padding: 12px; }
+.card {
+  background: white;
+  padding: 16px;
+  border-radius: 14px;
+  margin-bottom: 13px;
+  border: 1px solid var(--line);
+}
+h2 { font-size: 18px; margin: 0 0 12px; }
+label {
+  display: block;
+  font-weight: bold;
+  font-size: 14px;
+  margin: 12px 0 5px;
+}
+input, select, button {
+  font: inherit;
+}
+input, select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #c8d8d2;
+  border-radius: 9px;
+  background: white;
+}
+button {
+  border: 0;
+  border-radius: 9px;
+  padding: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.primary {
+  width: 100%;
+  background: var(--green);
+  color: white;
+  margin-top: 14px;
+}
+.secondary { background: #e6f2ee; color: var(--green); }
+.danger { background: #fff0f0; color: #a12c2c; }
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+.stat {
+  background: #f5faf8;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+}
+.stat small { color: #60736d; }
+.stat strong {
+  display: block;
+  font-size: 21px;
+  margin-top: 5px;
+  overflow-wrap: anywhere;
+}
+.entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding: 12px 0;
+}
+.entry small { display: block; margin-top: 4px; color: #60736d; }
+.entry button { padding: 7px; margin-top: 5px; }
+.muted { color: #60736d; font-size: 13px; line-height: 1.5; }
+.empty { padding: 15px 0; color: #60736d; }
+.notice {
+  background: #fff8e6;
+  border: 1px solid #ead9a8;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.check-row { display: flex; align-items: flex-start; gap: 9px; font-weight: normal; line-height: 1.4; }
+.check-row input { width: auto; margin-top: 2px; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 9px 7px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { color: #60736d; }
+footer { text-align: center; padding: 10px; color: #60736d; font-size: 12px; }
+@media(max-width:420px) {
+  .grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>💧 Urine Tracker</h1>
+  <p>Itala ang oras, dami ng ihi at tubig na iniinom.</p>
+</header>
+
+<main>
+  <section class="card">
+    <h2>＋ Itala ang pag-ihi</h2>
+    <form id="urineForm">
+      <label for="urineTime">Petsa at oras</label>
+      <input id="urineTime" type="datetime-local" required>
+
+      <label for="urineAmount">Dami ng ihi (mL)</label>
+      <input id="urineAmount" type="number" min="1"
+        max="3000" placeholder="Hal. 200" required>
+
+      <label for="urineNote">Sintomas o tala (opsiyonal)</label>
+      <input id="urineNote" maxlength="160"
+        placeholder="Hal. malakas ang agos, may hapdi">
+
+      <label class="check-row" for="wokeFromSleep">
+        <input id="wokeFromSleep" type="checkbox">
+        <span>Nagising ako mula sa pagtulog para umihi</span>
+      </label>
+      <p class="muted">Huwag lagyan ng tsek kung gising ka pa at hindi ka pa natutulog.</p>
+
+      <button class="primary" type="submit">I-save ang pag-ihi</button>
+    </form>
+    <p class="muted">
+      Tip: gumamit ng malinis na lalagyang may marka ng mL
+      para mas tumpak ang sukat.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>＋ Itala ang iniinom</h2>
+    <form id="drinkForm">
+      <label for="drinkTime">Petsa at oras</label>
+      <input id="drinkTime" type="datetime-local" required>
+
+      <label for="drinkAmount">Dami (mL)</label>
+      <input id="drinkAmount" type="number" min="1"
+        max="5000" placeholder="Hal. 250" required>
+
+      <label for="drinkType">Uri ng inumin</label>
+      <select id="drinkType">
+        <option value="Tubig">Tubig</option>
+        <option value="__other__">Iba pa</option>
+      </select>
+
+      <div id="otherDrinkWrap" hidden>
+        <label for="otherDrinkName">Pangalan ng ibang inumin</label>
+        <input id="otherDrinkName" type="text" maxlength="60"
+          placeholder="Hal. Kape, gatas, juice">
+      </div>
+
+      <button class="primary" type="submit">I-save ang inumin</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>📊 Buod ng araw</h2>
+    <label for="reportDate">Pumili ng petsa</label>
+    <input type="date" id="reportDate">
+
+    <div class="stats" style="margin-top:12px">
+      <div class="stat">
+        <small>Bilang ng pag-ihi</small>
+        <strong id="count">0</strong>
+      </div>
+      <div class="stat">
+        <small>Kabuuang ihi</small>
+        <strong id="total">0 mL</strong>
+      </div>
+      <div class="stat">
+        <small>Ihi sa araw (6 AM–6 PM)</small>
+        <strong id="dayTotal">0 mL</strong>
+      </div>
+      <div class="stat">
+        <small>Ihi sa gabi (6 PM–6 AM)</small>
+        <strong id="nightTotal">0 mL</strong>
+      </div>
+      <div class="stat">
+        <small>Kabuuang inumin</small>
+        <strong id="drinkTotal">0 mL</strong>
+      </div>
+      <div class="stat">
+        <small>Average bawat pag-ihi</small>
+        <strong id="average">0 mL</strong>
+      </div>
+    </div>
+    <p class="muted">
+      Ang araw/gabi ay batay sa oras ng pag-ihi. Para malaman
+      ang eksaktong produksyon ng ihi habang natutulog, itala
+      rin ang oras ng pagtulog at unang pag-ihi sa umaga.
+    </p>
+  </section>
+
+  <section class="card" id="weeklyReportCard">
+    <h2>📅 7-Day Report</h2>
+    <p class="muted">Ang report ay mula sa napiling petsa at sa anim na araw bago nito. Ang paggising sa gabi ay bibilangin lamang kung nilagyan mo ng tsek sa tala ng pag-ihi.</p>
+    <div class="stats" style="margin-top:12px">
+      <div class="stat"><small>Average na ihi / araw</small><strong id="weekAvgUrine">—</strong></div>
+      <div class="stat"><small>Average na inumin / araw</small><strong id="weekAvgDrink">—</strong></div>
+      <div class="stat"><small>Average na pag-ihi / araw</small><strong id="weekAvgCount">—</strong></div>
+      <div class="stat"><small>Average na paggising / gabi</small><strong id="weekAvgWake">—</strong></div>
+    </div>
+    <div class="table-wrap" style="margin-top:14px">
+      <table>
+        <thead><tr><th>Petsa</th><th>Pag-ihi</th><th>Ihi (mL)</th><th>Inumin (mL)</th><th>Gising sa gabi</th></tr></thead>
+        <tbody id="weeklyRows"></tbody>
+      </table>
+    </div>
+    <p id="weeklyNote" class="muted">Ang mga lumang tala na walang sagot sa checkbox ay hindi isasama sa average ng paggising sa gabi.</p>
+  </section>
+
+  <section class="card">
+    <h2>📋 Mga pag-ihi</h2>
+    <div id="urineHistory" class="empty">Wala pang tala.</div>
+  </section>
+
+  <section class="card">
+    <h2>🥤 Mga inumin</h2>
+    <div id="drinkHistory" class="empty">Wala pang tala.</div>
+  </section>
+
+  <section class="card">
+    <h2>Backup at export</h2>
+    <div class="actions">
+      <button class="secondary" id="csvBtn" type="button">I-export ang CSV</button>
+      <button class="secondary" id="backupBtn" type="button">Backup JSON</button>
+    </div>
+
+    <label for="restoreFile">Ibalik ang JSON backup</label>
+    <input id="restoreFile" type="file" accept=".json">
+
+    <button class="danger" id="clearBtn"
+      type="button" style="width:100%;margin-top:12px">
+      Burahin lahat ng tala
+    </button>
+    <p class="muted">
+      Sa browser ng phone na ito naka-save ang mga tala.
+      Mag-download ng backup paminsan-minsan.
+    </p>
+  </section>
+
+  <div class="notice">
+    <b>Paalala:</b> Pang-record lamang ang app na ito, hindi
+    pagsusuri. Dahil nagkaroon ka ng urinary retention,
+    mahalaga ang follow-up at PVR test kung maaari.
+    Kung hindi ka makaihi muli o sumakit at lumobo ang puson,
+    magpa-emergency agad.
+  </div>
+</main>
+
+<footer>Urine Tracker • Lokal na tala sa device</footer>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const KEY = "urineTracker_v1";
+
+  let db = { urine: [], drinks: [], drinkTypes: ["Tubig"] };
+
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY));
+    if (saved) {
+      db.urine = Array.isArray(saved.urine) ? saved.urine : [];
+      db.drinks = Array.isArray(saved.drinks) ? saved.drinks : [];
+      db.drinkTypes = Array.isArray(saved.drinkTypes)
+        ? saved.drinkTypes
+        : ["Tubig"];
+
+      // Isama rin ang mga uri ng inumin mula sa mga lumang tala.
+      db.drinks.forEach(item => {
+        if (item.type) addDrinkTypeToList(item.type);
+      });
+      ensureBasicDrinkTypes();
+    }
+  } catch (e) {
+    db = { urine: [], drinks: [], drinkTypes: ["Tubig"] };
+  }
+
+  const pad = n => String(n).padStart(2, "0");
+
+  function localDateTime(d = new Date()) {
+    return d.getFullYear() + "-" +
+      pad(d.getMonth() + 1) + "-" +
+      pad(d.getDate()) + "T" +
+      pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+
+  function dateKey(value) {
+    const d = new Date(value);
+    return d.getFullYear() + "-" +
+      pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  }
+
+  function timeText(value) {
+    return new Date(value).toLocaleTimeString("fil-PH", {
+      hour: "numeric", minute: "2-digit"
+    });
+  }
+
+  function num(n) {
+    return Number(n || 0).toLocaleString("en-US");
+  }
+
+  function ensureBasicDrinkTypes() {
+    if (!Array.isArray(db.drinkTypes)) db.drinkTypes = [];
+    if (!db.drinkTypes.some(x => String(x).trim().toLowerCase() === "tubig")) {
+      db.drinkTypes.unshift("Tubig");
+    }
+    // Tanggalin ang blanko at mga dobleng pangalan (kahit magkaiba ang case).
+    const unique = [];
+    const seen = new Set();
+    db.drinkTypes.forEach(value => {
+      const name = String(value || "").trim();
+      const key = name.toLocaleLowerCase();
+      if (name && key !== "__other__" && !seen.has(key)) {
+        seen.add(key);
+        unique.push(name);
+      }
+    });
+    db.drinkTypes = unique.length ? unique : ["Tubig"];
+  }
+
+  function addDrinkTypeToList(value) {
+    const name = String(value || "").trim();
+    if (!name || name.toLocaleLowerCase() === "iba pa") return;
+    if (!Array.isArray(db.drinkTypes)) db.drinkTypes = ["Tubig"];
+    if (!db.drinkTypes.some(x => String(x).trim().toLocaleLowerCase() === name.toLocaleLowerCase())) {
+      db.drinkTypes.push(name);
+    }
+  }
+
+  function renderDrinkOptions(selectedValue) {
+    ensureBasicDrinkTypes();
+    const select = $("drinkType");
+    select.replaceChildren();
+
+    db.drinkTypes.forEach(name => {
+      const option = document.createElement("option");
+      option.value = name;
+      option.textContent = name;
+      select.appendChild(option);
+    });
+
+    const other = document.createElement("option");
+    other.value = "__other__";
+    other.textContent = "Iba pa";
+    select.appendChild(other);
+
+    const exists = [...select.options].some(option => option.value === selectedValue);
+    select.value = exists ? selectedValue : "Tubig";
+    $("otherDrinkWrap").hidden = select.value !== "__other__";
+    $("otherDrinkName").required = select.value === "__other__";
+  }
+
+  function persist() {
+    ensureBasicDrinkTypes();
+    localStorage.setItem(KEY, JSON.stringify(db));
+  }
+
+  $("drinkType").addEventListener("change", () => {
+    const isOther = $("drinkType").value === "__other__";
+    $("otherDrinkWrap").hidden = !isOther;
+    $("otherDrinkName").required = isOther;
+    if (isOther) $("otherDrinkName").focus();
+  });
+
+  $("urineTime").value = localDateTime();
+  $("drinkTime").value = localDateTime();
+  $("reportDate").value = dateKey(new Date());
+
+  $("urineForm").addEventListener("submit", e => {
+    e.preventDefault();
+
+    const amount = Number($("urineAmount").value);
+    const when = new Date($("urineTime").value);
+
+    if (!Number.isFinite(amount) || amount <= 0 ||
+        Number.isNaN(when.getTime())) {
+      alert("Pakisuri ang oras at dami ng ihi.");
+      return;
+    }
+
+    db.urine.push({
+      id: Date.now() + Math.random(),
+      when: when.toISOString(),
+      amount,
+      note: $("urineNote").value.trim(),
+      wokeFromSleep: $("wokeFromSleep").checked
+    });
+
+    db.urine.sort((a,b) => new Date(a.when) - new Date(b.when));
+    persist();
+
+    $("urineAmount").value = "";
+    $("urineNote").value = "";
+    $("wokeFromSleep").checked = false;
+    $("urineTime").value = localDateTime();
+    render();
+  });
+
+  $("drinkForm").addEventListener("submit", e => {
+    e.preventDefault();
+
+    const amount = Number($("drinkAmount").value);
+    const when = new Date($("drinkTime").value);
+    const selectedType = $("drinkType").value;
+    const customName = $("otherDrinkName").value.trim();
+    const drinkType = selectedType === "__other__" ? customName : selectedType;
+
+    if (!Number.isFinite(amount) || amount <= 0 ||
+        Number.isNaN(when.getTime())) {
+      alert("Pakisuri ang oras at dami ng inumin.");
+      return;
+    }
+
+    if (!drinkType) {
+      alert("I-type muna ang pangalan ng inumin.");
+      $("otherDrinkName").focus();
+      return;
+    }
+
+    addDrinkTypeToList(drinkType);
+
+    db.drinks.push({
+      id: Date.now() + Math.random(),
+      when: when.toISOString(),
+      amount,
+      type: drinkType
+    });
+
+    db.drinks.sort((a,b) => new Date(a.when) - new Date(b.when));
+    persist();
+
+    // Ipakita ang bagong pangalan sa listahan at piliin ito para sa susunod.
+    renderDrinkOptions(drinkType);
+    $("otherDrinkName").value = "";
+    $("drinkAmount").value = "";
+    $("drinkTime").value = localDateTime();
+    render();
+  });
+
+  $("reportDate").addEventListener("change", render);
+
+  function addEntry(container, item, type) {
+    const row = document.createElement("div");
+    row.className = "entry";
+
+    const info = document.createElement("div");
+    const title = document.createElement("b");
+    title.textContent = timeText(item.when) +
+      (type === "drinks" ? " · " + item.type : "");
+
+    const note = document.createElement("small");
+    if (type === "urine") {
+      const details = [item.note || "Walang dagdag na tala"];
+      if (item.wokeFromSleep === true) details.push("Nagising mula sa pagtulog");
+      else if (item.wokeFromSleep === false) details.push("Hindi mula sa pagtulog");
+      else details.push("Hindi namarkahan ang paggising");
+      note.textContent = details.join(" · ");
+    } else {
+      note.textContent = new Date(item.when).toLocaleDateString("fil-PH");
+    }
+
+    info.append(title, note);
+
+    const right = document.createElement("div");
+    right.style.textAlign = "right";
+
+    const amount = document.createElement("b");
+    amount.textContent = num(item.amount) + " mL";
+
+    const del = document.createElement("button");
+    del.className = "danger";
+    del.textContent = "Burahin";
+    del.type = "button";
+
+    del.addEventListener("click", () => {
+      if (!confirm("Burahin ang tala na ito?")) return;
+      db[type] = db[type].filter(x => x.id !== item.id);
+      persist();
+      render();
+    });
+
+    right.append(amount, del);
+    row.append(info, right);
+    container.appendChild(row);
+  }
+
+  function renderWeeklyReport(endDay) {
+    const end = new Date(endDay + "T12:00:00");
+    const days = [];
+    for (let offset = 6; offset >= 0; offset--) {
+      const d = new Date(end);
+      d.setDate(d.getDate() - offset);
+      days.push(dateKey(d));
+    }
+
+    const stats = days.map(day => {
+      const urine = db.urine.filter(x => dateKey(x.when) === day);
+      const drinks = db.drinks.filter(x => dateKey(x.when) === day);
+      const urineTotal = urine.reduce((sum, x) => sum + Number(x.amount || 0), 0);
+      const drinkTotal = drinks.reduce((sum, x) => sum + Number(x.amount || 0), 0);
+      const unknownWake = urine.some(x => typeof x.wokeFromSleep !== "boolean");
+      const wakeCount = urine.filter(x => x.wokeFromSleep === true).length;
+      return { day, urineCount: urine.length, urineTotal, drinkTotal, wakeCount, unknownWake, hasUrine: urine.length > 0, hasDrinks: drinks.length > 0 };
+    });
+
+    const average = (values) => values.length
+      ? num(Math.round(values.reduce((a, b) => a + b, 0) / values.length))
+      : "—";
+    const urineDays = stats.filter(x => x.hasUrine);
+    const drinkDays = stats.filter(x => x.hasDrinks);
+    const completeWakeDays = stats.filter(x => x.hasUrine && !x.unknownWake);
+
+    $("weekAvgUrine").textContent = average(urineDays.map(x => x.urineTotal)) + (urineDays.length ? " mL" : "");
+    $("weekAvgDrink").textContent = average(drinkDays.map(x => x.drinkTotal)) + (drinkDays.length ? " mL" : "");
+    $("weekAvgCount").textContent = average(urineDays.map(x => x.urineCount)) + (urineDays.length ? " beses" : "");
+    $("weekAvgWake").textContent = completeWakeDays.length
+      ? (completeWakeDays.reduce((sum, x) => sum + x.wakeCount, 0) / completeWakeDays.length).toLocaleString("fil-PH", { maximumFractionDigits: 1 }) + " beses"
+      : "Kulang ang tala";
+
+    const tbody = $("weeklyRows");
+    tbody.replaceChildren();
+    stats.forEach(x => {
+      const tr = document.createElement("tr");
+      const dateCell = document.createElement("td");
+      dateCell.textContent = new Date(x.day + "T12:00:00").toLocaleDateString("fil-PH", { weekday: "short", month: "short", day: "numeric" });
+      const countCell = document.createElement("td");
+      countCell.textContent = x.hasUrine ? num(x.urineCount) : "—";
+      const urineCell = document.createElement("td");
+      urineCell.textContent = x.hasUrine ? num(x.urineTotal) : "—";
+      const drinkCell = document.createElement("td");
+      drinkCell.textContent = x.hasDrinks ? num(x.drinkTotal) : "—";
+      const wakeCell = document.createElement("td");
+      if (!x.hasUrine) wakeCell.textContent = "—";
+      else if (x.unknownWake) wakeCell.textContent = x.wakeCount + " + hindi kumpleto";
+      else wakeCell.textContent = num(x.wakeCount) + " beses";
+      [dateCell, countCell, urineCell, drinkCell, wakeCell].forEach(cell => tr.appendChild(cell));
+      tbody.appendChild(tr);
+    });
+
+    $("weeklyNote").textContent = completeWakeDays.length
+      ? "Ang average ng paggising ay gumagamit lamang ng mga araw na may tala ng pag-ihi at kumpletong sagot sa checkbox. Ang ‘—’ ay nangangahulugang walang naitalang datos."
+      : "Wala pang sapat na kumpletong tala para makalkula ang average ng paggising sa gabi. Ang mga lumang tala ay walang checkbox at hindi huhulaan kung nagising ka mula sa pagtulog.";
+  }
+
+  function render() {
+    const day = $("reportDate").value || dateKey(new Date());
+
+    const urine = db.urine
+      .filter(x => dateKey(x.when) === day)
+      .sort((a,b) => new Date(b.when) - new Date(a.when));
+
+    const drinks = db.drinks
+      .filter(x => dateKey(x.when) === day)
+      .sort((a,b) => new Date(b.when) - new Date(a.when));
+
+    const total = urine.reduce((s,x) => s + Number(x.amount), 0);
+    const daytime = urine
+      .filter(x => {
+        const h = new Date(x.when).getHours();
+        return h >= 6 && h < 18;
+      })
+      .reduce((s,x) => s + Number(x.amount), 0);
+
+    const night = total - daytime;
+    const intake = drinks.reduce((s,x) => s + Number(x.amount), 0);
+
+    $("count").textContent = num(urine.length);
+    $("total").textContent = num(total) + " mL";
+    $("dayTotal").textContent = num(daytime) + " mL";
+    $("nightTotal").textContent = num(night) + " mL";
+    $("drinkTotal").textContent = num(intake) + " mL";
+    $("average").textContent =
+      num(urine.length ? Math.round(total / urine.length) : 0) + " mL";
+
+    $("urineHistory").replaceChildren();
+    if (!urine.length) {
+      $("urineHistory").textContent =
+        "Wala pang tala sa petsang ito.";
+      $("urineHistory").className = "empty";
+    } else {
+      $("urineHistory").className = "";
+      urine.forEach(x => addEntry($("urineHistory"), x, "urine"));
+    }
+
+    $("drinkHistory").replaceChildren();
+    if (!drinks.length) {
+      $("drinkHistory").textContent =
+        "Wala pang tala sa petsang ito.";
+      $("drinkHistory").className = "empty";
+    } else {
+      $("drinkHistory").className = "";
+      drinks.forEach(x => addEntry($("drinkHistory"), x, "drinks"));
+    }
+    renderWeeklyReport(day);
+  }
+
+  function download(name, content, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  $("csvBtn").addEventListener("click", () => {
+    const rows = [["kind","datetime","amount_ml","note_or_type","woke_from_sleep"]];
+
+    db.urine.forEach(x => rows.push([
+      "urine", x.when, x.amount, x.note || "",
+      typeof x.wokeFromSleep === "boolean" ? (x.wokeFromSleep ? "yes" : "no") : "not recorded"
+    ]));
+
+    db.drinks.forEach(x => rows.push([
+      "drink", x.when, x.amount, x.type || "", ""
+    ]));
+
+    const csv = rows.map(row =>
+      row.map(value =>
+        '"' + String(value).replace(/"/g, '""') + '"'
+      ).join(",")
+    ).join("\r\n");
+
+    download("urine-tracker.csv", "\uFEFF" + csv,
+      "text/csv;charset=utf-8");
+  });
+
+  $("backupBtn").addEventListener("click", () => {
+    download("urine-tracker-backup.json",
+      JSON.stringify(db, null, 2), "application/json");
+  });
+
+  $("restoreFile").addEventListener("change", async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      const backup = JSON.parse(await file.text());
+
+      if (!Array.isArray(backup.urine) ||
+          !Array.isArray(backup.drinks)) {
+        throw new Error("Invalid backup");
+      }
+
+      if (!confirm("Papalitan ang kasalukuyang tala ng backup?")) {
+        return;
+      }
+
+      db = {
+        urine: backup.urine,
+        drinks: backup.drinks,
+        drinkTypes: Array.isArray(backup.drinkTypes)
+          ? backup.drinkTypes
+          : ["Tubig"]
+      };
+      db.drinks.forEach(item => {
+        if (item.type) addDrinkTypeToList(item.type);
+      });
+      ensureBasicDrinkTypes();
+      persist();
+      renderDrinkOptions("Tubig");
+      render();
+      alert("Naibalik ang backup.");
+    } catch (err) {
+      alert("Hindi mabasa ang backup JSON file.");
+    } finally {
+      e.target.value = "";
+    }
+  });
+
+  $("clearBtn").addEventListener("click", () => {
+    if (!confirm("Sigurado ka bang buburahin ang lahat ng tala?")) {
+      return;
+    }
+
+    db = { urine: [], drinks: [], drinkTypes: ["Tubig"] };
+    persist();
+    renderDrinkOptions("Tubig");
+    render();
+  });
+
+  renderDrinkOptions("Tubig");
+  render();
+})();
+</script>
+</body>
+</html>
